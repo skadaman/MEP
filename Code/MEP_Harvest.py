@@ -33,7 +33,9 @@ def mexharvest(report ,system ,process ,nodes ,datestart ,dateend):
     url_tail=report+'/'+system+'/'+process+'/'+nodes+'/'+datestart+'/'+dateend
     url=url_head+url_tail
     data=requests.get(url)
-    with open('/Users/W1/Downloads/MexXML.xml','wb') as file:
+
+    file_name=url_tail.replace("/","-").replace(",","")
+    with open('/Users/W1/MEP/MEP/CENACEdata/'+file_name+'.xml','wb') as file:
         file.write(data.content)
 
 #sample call mexharvest("PML","SIN","MDA","01PLO-115","2018/01/12","2018/01/12")
