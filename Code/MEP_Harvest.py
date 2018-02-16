@@ -1,17 +1,10 @@
 
-''' This script will harvest Mexican DA power prices
-This is ment to be run daily and upload the data into a database
-Another script will be created as backfill tool. This script will only run the daily harvest.
+''' This script will harvest Mexican power market data.
+This is ment to be run daily and upload the data into a database,
+although it is a function and can be used to download up to 7 days of data and
+20 nodes at a time.
 Created on Tuesday, Decemeber 12, 2017
-by Sebastian Kadamany'''
-
-
-
-"""
-Created on Wed May 10 21:16:55 2017
-@author: S.Kadamany
-"""
-
+by Sebastian Kadamany (SKADAMAN)'''
 
 import requests
 #import pandas as pd
@@ -43,12 +36,5 @@ def mexharvest(report ,system ,process ,nodes ,datestart ,dateend):
     with open('/Users/W1/Downloads/MexXML.xml','wb') as file:
         file.write(data.content)
 
-# downloadloc=r'\\ascendanalytics.com\users\sxk94\python'
-# date_list=pd.date_range(start=date_start, end=date_end, freq='D').strftime('%Y-%m-%d')
-# dates=[d.replace('-','',) for d in date_list]
-# for i in dates:
-#     fullurl=url_head+str(i)+url_tail+extension
-#     file= downloadloc+"\MiSO_DA_"+i+extension
-#     urllib.request.urlretrieve(fullurl,file)
-
+#sample call mexharvest("PML","SIN","MDA","01PLO-115","2018/01/12","2018/01/12")
 
