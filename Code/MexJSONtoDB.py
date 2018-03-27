@@ -1,6 +1,7 @@
 import glob
-import pandas as pd
-#import numpy as np
+from datetime import timedelta,datetime
+from time import time,mktime,strptime
+import numpy as np
 import json
 
 def MEP_ParseUpload(report, process):
@@ -13,41 +14,64 @@ def MEP_ParseUpload(report, process):
     engine = create_engine(e_string)
     connection = engine.connect()
 
-    from sqlalchemy import insert,MetaData,Table
-
+    from sqlalchemy import insert,MetaData,Table,select
+    metadata=MetaData()
+    node_table= Table('node',metadata,
+                      autoload=True, autoload_with=engine)
     if np.logical_and(report=="PML",process=="DA"):
-        dapowerfiles=glob.iglob('/Users/W1/MEP/MEP/CENACEdata/PML*MDA*.json')
+        dapowerfiles=glob.iglob(
+                '/Users/W1/MEP/MEP/CENACEdata/PML*MDA*.json')
         for f in dapowerfiles:
-            data=jason.load(f)
-            for r in data['Resultados']
-                nodecode= {r['clv_nodo']}
-                qstmnt='Select node_id from node where node_code='+nodecode
-                result_proxy=connection.execute(qstmnt)
-                results=result_proxy.fetchone()
-                nodeid=results[0].node_id
+            data=json.load(open(f))
             for r in data['Resultados']:
+                code= r['clv_nodo']
+                stmnt=select([node_table])
+                stmnt=stmnt.where(node_table.columns.node_code==code)
+                result_proxy=connection.execute(stmnt)
+                results=result_proxy.fetchone()
+                node=results[0]
                 for v in r['Valores']:
-                    d=datetime.strptime(v['fecha'],'%Y-%m-%d')
-                    dt=d+timedelta(hours=int(v['hora'])-1)
+                    d=strptime(v['fecha'],'%Y-%m-%d')
+                    d=datetime.fromtimestamp(mktime(d))
+                    date_time=d+timedelta(hours=int(v['hora'])-1)
                     price= v['pml']
                     
-                    metadata=MetaData()
-                    da_table= Table('dapower',metadata, autoload=True, autoload_with=engine)
-                    stmt=insert(da_table)
-                    harvested_vlist=[{'dt':dt,
-                                      'country_id':2,
-                                      'currency_id':2,
-                                      'value':price,
-                                      'node_id':nodeid}
-                                    ]
+                    da_table= Table('dapower',metadata,
+                                    autoload=True, autoload_with=engine)
+                    stmt=insert(da_table).values(dt=date_time,
+                                                 country_id=2,
+                                                 currency_id=2,
+                                                 value=price,
+                                                 node_id=node)
+
+                    result_proxy = connection.execute(stmt)
     elif np.logical_and(report=="PML",process=="RT"):
-        rtpowerfiles=glob.iglob('/Users/W1/MEP/MEP/CENACEdata/PML*MTR*.json')
-        rt_list = []
+        rtpowerfiles = glob.iglob('/Users/W1/MEP/MEP/CENACEdata/PML*MTR*.json')
         for f in rtpowerfiles:
-            df = pd.read_json(f,orient='split')
-            rt_list.append(df)
-            rt_power=pd.concat(rt_list)
-        return rt_power
+            data=json.load(open(f))
+            for r in data['Resultados']
+                code= r['clv_nodo']
+                stmnt=select([node_table])
+                stmnt=stmnt.where(node_table.columns.node_code==code)
+                result_proxy=connection.execute(stmnt)
+                results=result_proxy.fetchone()
+                node=results[0]
+                for v in r['Valores']:
+                    d=strptime(v['fecha'],'%Y-%m-%d')
+                    d=datetime.fromtimestamp(mktime(d))
+                    date_time=d+timedelta(hours=int(v['hora'])-1)
+                    price= v['pml']
+                    
+                    
+                    rt_table= Table('rtpower',metadata,
+                                    autoload=True, autoload_with=engine)
+                    stmt=insert(rt_table).values(dt=date_time,
+                                                 country_id=2,
+                                                 currency_id=2,
+                                                 value=price,
+                                                 node_id=node)
+
+                    result_proxy = connection.execute(stmt)
     else:
         raise ValueError('Either the report type is not yet supported or the process was not correctly specified')
 
