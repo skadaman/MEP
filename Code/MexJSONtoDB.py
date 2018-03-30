@@ -1,5 +1,5 @@
 import glob
-from datetime import timedelta,datetime
+from datetime import timedelta,datetime, date
 from time import mktime,strptime
 import numpy as np
 import json
@@ -49,8 +49,8 @@ def MEP_ParseUpload(report, process):
                                              country_id=2,
                                              currency_id=2,
                                              value=price,
-                                             node_id=node)
-
+                                             node_id=node,
+                                             updated=date.today())
                 result_proxy = connection.execute(stmt)
 
         
